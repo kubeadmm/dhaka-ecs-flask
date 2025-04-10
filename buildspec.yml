@@ -7,7 +7,12 @@ phases:
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 442042520759.dkr.ecr.us-east-1.amazonaws.com
   build:
     commands:
+
       - echo Build started on `date`
+      - echo Listing current directory...
+      - ls -la
+      - echo Checking for Dockerfile...
+      - cat Dockerfile
       - echo Building the Docker image...
       - docker build -t dhaka-flask-app:latest .
       - docker tag dhaka-flask-app:latest 442042520759.dkr.ecr.us-east-1.amazonaws.com/dhaka-flask-app:latest
