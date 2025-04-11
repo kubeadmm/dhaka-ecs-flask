@@ -1,22 +1,26 @@
 version: 0.2
+
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 442042520759.dkr.ecr.us-east-1.amazonaws.com
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
   build:
     commands:
-      - echo Build started on `date`
+      - echo Checking repository contents...
+      - ls -la
+      - echo Displaying Dockerfile...
+      - cat Dockerfile || echo "Dockerfile not found or empty"
       - echo Building the Docker image...
-      - docker build -t dhaka-flask-app:latest .
-      - docker tag dhaka-flask-app:latest 442042520759.dkr.ecr.us-east-1.amazonaws.com/dhaka-flask-app:latest
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $ECR_REGISTRY/$IMAGE_REPO_NAME:$IMAGE_TAG
   post_build:
     commands:
       - echo Pushing the Docker image...
-      - docker push 442042520759.dkr.ecr.us-east-1.amazonaws.com/dhaka-flask-app:latest
+      - docker push $ECR_REGISTRY/$IMAGE_REPO_NAME:$IMAGE_TAG
       - echo Writing image definitions file...
-      - printf '[{"name":"dhaka-flask-container","imageUri":"442042520759.dkr.ecr.us-east-1.amazonaws.com/dhaka-flask-app:latest"}]' > imagedefinitions.json
-      - echo Build completed on `date`
+      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $ECR_REGISTRY/$IMAGE_REPO_NAME:$IMAGE_TAG > imagedefinitions.json
+
 artifacts:
   files:
     - imagedefinitions.json
